@@ -9,12 +9,15 @@ import {ToolbarModule} from "primeng/toolbar";
 import {FileUploadModule} from "primeng/fileupload";
 import {DialogModule} from "primeng/dialog";
 import {InputTextModule} from "primeng/inputtext";
-import {NgIf} from "@angular/common";
+import {NgForOf, NgIf} from "@angular/common";
 import {FormsModule} from "@angular/forms";
 import {MessageService} from "primeng/api";
 
 import {DocumentationService} from "../../../service/documentation.service";
 import {InputTextareaModule} from "primeng/inputtextarea";
+import {NotificationServiceService} from "../../../service/notification-service.service";
+import { Router, RouterOutlet} from "@angular/router";
+
 
 interface expandedRows {
     [key: string]: boolean;
@@ -36,6 +39,8 @@ interface expandedRows {
         NgIf,
         FormsModule,
         InputTextareaModule,
+        NgForOf,
+        RouterOutlet,
     ],
   templateUrl: './label.component.html',
   styleUrl: './label.component.scss'
@@ -51,9 +56,17 @@ export class LabelComponent implements OnInit{
     deleteLabelDialog: boolean;
     documentDialog: boolean = false;
     document: any = {};
+    receivedMessages: string[] = [];
 
      isEditDocumentMode: boolean=false;
-    constructor(private lableService:LabelService,private messageService: MessageService,private docService:DocumentationService) {
+    input: any;
+
+
+    constructor(private lableService:LabelService,private messageService: MessageService,private docService:DocumentationService,
+
+                public notificationService:NotificationServiceService,private router: Router) {
+
+
     }
 
     expandAll() {
@@ -68,7 +81,17 @@ export class LabelComponent implements OnInit{
     }
 
     ngOnInit(): void {
+
         this.loadData();
+
+
+
+
+
+
+
+
+
 
     }
 
@@ -109,9 +132,21 @@ export class LabelComponent implements OnInit{
     saveLabel() {
 
         this.submitted=true;
+        if (!this.label.name || !this.label.name.match(/^[a-zA-Z\s]*$/)) {
+            // Show error message for invalid name
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Validation Error',
+                detail: 'Please enter a valid name containing only alphabetic characters.',
+                life: 3000
+            });
+            return;
+        }
+
         this.lableService.createLabel(this.label).subscribe((res)=>{
             this.labelDialog = false;
             this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Label added', life: 3000 });
+            this.notificationService.sendMessage('New label added: ' + this.label.name);
             this.loadData();
         },error => {
            console.log(error);
@@ -175,38 +210,52 @@ export class LabelComponent implements OnInit{
     }
 
     saveDoc() {
-        this.submitted=true;
-        if (this.isEditDocumentMode) {
+        this.submitted = true;
 
-            console.log("this update data reequest")
-            console.log(this.document);
-            this.docService.updateDocumentation(this.document,this.document._id).subscribe(
-                () => {
-                    this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Documentation updated', life: 3000 });
-                    this.loadData();
-                },
-                error => {
-                    console.error('Error updating documentation:', error);
+        // Validate country input against the Rest Countries API
+        this.lableService.fetchCountryNames().subscribe(
+            (countries: any[]) => {
+                console.log(countries)
+                const countryNames = countries;
+
+                if (countryNames.includes(this.document.country)) {
+                    // Country is valid, proceed with saving the documentation
+                    if (this.isEditDocumentMode) {
+                        console.log("this update data request")
+                        console.log(this.document);
+                        this.docService.updateDocumentation(this.document, this.document._id).subscribe(
+                            () => {
+                                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Documentation updated', life: 3000 });
+                                this.loadData();
+                            },
+                            error => {
+                                console.error('Error updating documentation:', error);
+                            }
+                        );
+                    } else {
+                        this.docService.affecterdocumentation(this.document, this.label._id).subscribe(() => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Successful',
+                                detail: 'Documentation Added',
+                                life: 3000
+                            });
+                            this.loadData();
+                        }, error => {
+                            console.log(error);
+                        });
+                        this.hideDialogDoc();
+                        this.isEditDocumentMode = !this.isEditDocumentMode;
+                    }
+                } else {
+                    // Country is not valid, display an error message
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid country name', life: 3000 });
                 }
-            );
-        } else {
-
-
-            this.docService.affecterdocumentation(this.document, this.label._id).subscribe((res) => {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Documentation Added',
-                    life: 3000
-                });
-                this.loadData();
-
-            }, error => {
-
-                console.log(error);
-            })
-            this.hideDialogDoc();
-        }
+            },
+            error => {
+                console.error('Error fetching country data:', error);
+            }
+        );
 
     }
 
@@ -217,6 +266,27 @@ export class LabelComponent implements OnInit{
         this.documentDialog = true;
 
 
+
+    }
+
+    sendMessage() {
+        if (this.input.trim() !== '') {
+            this.notificationService.sendMessage(this.input.trim());
+            this.input = ''; // Clear the input field after sending the message
+        }
+
+    }
+
+
+    goToStat() {
+
+        this.router.navigate(['/pages/label/statistique'])
+
+    }
+
+
+    viewDetails(id:string) {
+        this.router.navigate(['/pages/label/detail', id]);
 
     }
 }

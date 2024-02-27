@@ -7,4 +7,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 
 public interface DocuumentationRepository extends MongoRepository<Documentation,String> {
-}
+} //base fc predifini

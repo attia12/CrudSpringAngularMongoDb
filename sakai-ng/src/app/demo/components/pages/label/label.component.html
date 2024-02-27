@@ -1,4 +1,5 @@
 <div class="grid">
+
     <div class="col-12">
         <p-toast></p-toast>
         <p-toolbar styleClass="mb-4">
@@ -12,6 +13,10 @@
             <ng-template pTemplate="right">
                 <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload>
                 <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
+            </ng-template>
+            <ng-template pTemplate="right">
+
+                <button pButton pRipple label="See Stat" icon="pi pi-upload" class="p-button-help" (click)="goToStat()"></button>
             </ng-template>
         </p-toolbar>
         <div class="card">
@@ -49,6 +54,8 @@
                                 <button pButton pRipple icon="pi pi-plus" class="p-button-rounded p-button-success mr-2" (click)="addDocument(label)"></button>
                                 <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editLabel(label)"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteLabel(label)"></button>
+
+                                <button pButton pRipple icon="pi pi-info-circle" class="p-button-rounded p-button-info" (click)="viewDetails(label._id)"></button>
                             </div>
                         </td>
                     </tr>
@@ -161,4 +168,10 @@
             <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveDoc()"></button>
         </ng-template>
     </p-dialog>
+<router-outlet></router-outlet>
 
+<!--<div class="content">&ndash;&gt;-->
+<!--       <div *ngFor="let msg of notificationService.msg">-->
+<!--             {{msg}}&ndash;&gt;-->
+<!--        </div>&ndash;&gt;-->
+<!--     </div>-->
