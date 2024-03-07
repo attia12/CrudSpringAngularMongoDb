@@ -289,4 +289,15 @@ export class LabelComponent implements OnInit{
         this.router.navigate(['/pages/label/detail', id]);
 
     }
+
+    askChatGPT() {
+        this.lableService.askChatGpt(this.document.country).subscribe((res:any)=>{
+            console.log(res);
+            this.document.description = res;
+
+        },error => {
+            console.log(error);
+        })
+
+    }
 }

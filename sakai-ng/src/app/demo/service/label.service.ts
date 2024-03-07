@@ -49,5 +49,11 @@ export class LabelService {
         return this.http.get<any>(`${this.baseUrl}api/label/${id}`);
 
     }
+    askChatGpt(country:any)
+    {
+        const prompt = `loi of metadata gouvernance sur le valeur ${country} selected`;
+        console.log(prompt)
+        return this.http.get('http://localhost:8080/bot/chat', { params: { prompt }, responseType: 'text' });
+    }
 
 }

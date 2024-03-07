@@ -3,6 +3,7 @@ package com.example.metaData.controller;
 import com.example.metaData.models.Documentation;
 import com.example.metaData.models.Label;
 import com.example.metaData.services.DocumentationService;
+import com.example.metaData.services.TwilioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,13 @@ import java.util.List;
 public class DocumentationController {
     @Autowired
     private DocumentationService documentationService;
+    @Autowired
+    private TwilioService twilioService;
     @PostMapping
     public ResponseEntity<Documentation> createDocumentation(@RequestBody Documentation documentation)
     {
         documentationService.SaveDocumentation(documentation);
+
         return new ResponseEntity<>(documentation, HttpStatus.CREATED);
     }
     @GetMapping
@@ -46,6 +50,7 @@ public class DocumentationController {
     public ResponseEntity<String>affecterDocALabel(@RequestBody Documentation doc , @PathVariable String labelId)
     {
         documentationService.affecter(labelId,doc);
+        twilioService.sendSms("+21653587130", "New documentation inserted: " + doc.getDescription());
         return new ResponseEntity("affecter Sussess",HttpStatus.OK);
     }
 }
